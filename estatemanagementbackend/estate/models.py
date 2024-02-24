@@ -9,7 +9,7 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.username}, Phone number: {self.phone_number}, Verified: {self.is_verified}"
+        return f"{self.username}, Phone number: {self.phone_number}, Verified: {self.is_verified}, profile {self.profile_pics}"
 
 class BuildingCategory(models.Model):
     category = models.CharField(max_length=50, unique=True)

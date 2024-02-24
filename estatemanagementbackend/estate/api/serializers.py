@@ -10,49 +10,63 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
-   
-    profile_pics = serializers.ImageField(required=False)
+    profile_pics = serializers.ImageField(required=True)
 
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'phone_number', 'about', 'password', 'profile_pics']
-        extra_kwargs = {'password': {'write_only': True}}
+        
 
     def validate(self, data):
         password = data.get('password')
-        
-
-        
-
         try:
             # Use Django's password validation to ensure a strong password
             validate_password(password=password)
         except ValidationError as e:
+            # Print the validation error details
+            print(f"Validation error: {e.messages}")
             raise serializers.ValidationError(e.messages)
 
         return data
 
+    def to_representation(self, instance):
+        return {
+            'status': 'error',
+            'message': 'Validation error',
+            'errors': self.errors,
+        }
+
     def create(self, validated_data):
-        
-        user = User.objects.create_user(**validated_data)
-        return user
+        try:
+            # Try to create the user
+            user = User.objects.create_user(**validated_data)
+            return user
+        except ValidationError as ve:
+            # Handle validation error and include it in the response
+            self.errors = ve.messages
+            return None
+        except Exception as e:
+            # Print the error and raise the exception again
+            print(f"Error creating user: {e}")
+            raise e
+
 
 class BuildingUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Building
         fields = [
             'name', 'building_type', 'price',
-            'bedrooms', 'bathrooms', 'toilets',
-            
+            'bedrooms', 'bathrooms', 'toilets', 'property_owner', 'swimming_pool',
+            'highspeed_internet', 'gym', 'dishwasher', 'wifi', 'garage',
+            'property_type', 'building_type', 'condition', 'furnishing', 'image'
         ]
 
 class LandUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Land
-        fields = ['name', 'owner', 'price', 'description']
+        fields = ['name', 'owner', 'price', 'description', ]
 
     def to_internal_value(self, data):
         try:
