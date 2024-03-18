@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django_countries',
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
@@ -76,6 +77,11 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
+#fixed django_countries patch
+from django_countries.widgets import LazyChoicesMixin
+
+LazyChoicesMixin.get_choices = lambda self: self._choices
+LazyChoicesMixin.choices = property(LazyChoicesMixin.get_choices, LazyChoicesMixin.set_choices)
 
 ROOT_URLCONF = 'estatemanagementbackend.urls'
 

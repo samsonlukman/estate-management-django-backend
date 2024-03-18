@@ -1,4 +1,4 @@
-from rest_framework import generics
+from django.db.models import Q
 from estate.models import *
 from .serializers import *
 from django.contrib.auth import get_user_model
@@ -6,9 +6,9 @@ from django.contrib.auth import authenticate, login, logout
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
+from rest_framework import filters, viewsets, status, filters, generics, permissions
 
 User = get_user_model()
 
@@ -56,11 +56,18 @@ def get_user_details(request):
     serializer = UserSerializer(user)
     return Response(serializer.data)
 
+class EditProfileView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = EditProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+    
 class UserListCreateView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
-
+    
 
 class BuildingConditionListCreateView(generics.ListCreateAPIView):
     queryset = BuildingCondition.objects.all()
@@ -95,3 +102,85 @@ class LandListCreateView(generics.ListCreateAPIView):
 class LandRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Land.objects.all()
     serializer_class = LandSerializer
+
+# views.py
+class SavedPropertyListCreateView(generics.ListCreateAPIView):
+    serializer_class = SavedPropertySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return SavedProperty.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class SavedPropertyDeleteView(generics.DestroyAPIView):
+    serializer_class = SavedPropertySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return SavedProperty.objects.filter(user=self.request.user)
+
+class SavedPropertyViewSet(viewsets.ModelViewSet):
+    queryset = SavedProperty.objects.all()
+    serializer_class = SavedPropertySerializer
+    permission_classes = [IsAuthenticated] 
+
+    # Ensure saving links the property to the current user
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user) 
+    
+@api_view(['GET'])
+def property_search(request):
+    query = request.GET.get('query', '')
+    
+    building_results = Building.objects.filter(name__icontains=query)
+    land_results = Land.objects.filter(name__icontains=query)
+
+    building_serializer = BuildingSerializer(building_results, many=True)
+    land_serializer = LandSerializer(land_results, many=True)
+
+    return Response({'building_results': building_serializer.data, 'land_results': land_serializer.data})
+
+class BuildingViewSet(viewsets.ModelViewSet):
+    queryset = Building.objects.all()
+    serializer_class = BuildingSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'building_type', 'condition', 'furnishing', 'country']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        min_price = self.request.GET.get('min_price', None)
+        max_price = self.request.GET.get('max_price', None)
+        country = self.request.GET.get('country', None)
+
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+        if country:
+            queryset = queryset.filter(country__icontains=country)
+
+        return queryset
+
+class LandViewSet(viewsets.ModelViewSet):
+    queryset = Land.objects.all()
+    serializer_class = LandSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'country']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        min_price = self.request.GET.get('min_price', None)
+        max_price = self.request.GET.get('max_price', None)
+        country = self.request.GET.get('country', None)
+
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+        if country:
+            queryset = queryset.filter(country__icontains=country)
+
+        return queryset

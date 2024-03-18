@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from estate.models import User, Land, BuildingCondition, FurnishingType, Building
+from estate.models import *
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
@@ -9,14 +9,13 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = '__all__'
 
-
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
     profile_pics = serializers.ImageField(required=True)
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'phone_number', 'about', 'password', 'profile_pics']
+        fields = ['username', 'first_name', 'last_name', 'email', 'phone_number', 'about', 'password', 'profile_pics', 'country']
         
 
     def validate(self, data):
@@ -52,7 +51,35 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             print(f"Error creating user: {e}")
             raise e
 
+class EditProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'phone_number', 'about', 'country']
 
+        username = serializers.CharField(required=False)
+        first_name = serializers.CharField(required=False)
+        last_name = serializers.CharField(required=False)
+        email = serializers.EmailField(required=False)
+        phone_number = serializers.CharField(required=False)
+        about = serializers.CharField(required=False)
+        profile_pics = serializers.ImageField(required=False)  
+        country = serializers.CharField(required=False)
+        about = serializers.CharField(required=False)
+        
+        
+class BuildingSerializer(serializers.ModelSerializer):
+    property_owner = UserSerializer()
+
+    class Meta:
+        model = Building
+        fields = '__all__'
+
+class SavedPropertySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedProperty
+        fields = '__all__' 
+        
+        
 class BuildingUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Building
@@ -60,23 +87,22 @@ class BuildingUploadSerializer(serializers.ModelSerializer):
             'name', 'building_type', 'price',
             'bedrooms', 'bathrooms', 'toilets', 'property_owner', 'swimming_pool',
             'highspeed_internet', 'gym', 'dishwasher', 'wifi', 'garage',
-            'property_type', 'building_type', 'condition', 'furnishing', 'image'
+            'property_type', 'building_type', 'condition', 'furnishing', 'country'
         ]
 
+class LandImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LandImage
+        fields = ['image']
+
 class LandUploadSerializer(serializers.ModelSerializer):
+    
+
     class Meta:
         model = Land
-        fields = ['name', 'owner', 'price', 'description', ]
+        fields = ['name', 'owner', 'price', 'description', 'country']
 
-    def to_internal_value(self, data):
-        try:
-            return super().to_internal_value(data)
-        except serializers.ValidationError as e:
-            raise serializers.ValidationError({
-                'error': 'Invalid input',
-                'details': e.detail
-            })
-
+    
 class BuildingConditionSerializer(serializers.ModelSerializer):
     class Meta:
         model = BuildingCondition
@@ -89,14 +115,9 @@ class FurnishingTypeSerializer(serializers.ModelSerializer):
 
 
 
-class BuildingSerializer(serializers.ModelSerializer):
-    property_owner = UserSerializer()
-
-    class Meta:
-        model = Building
-        fields = '__all__'
 
 class LandSerializer(serializers.ModelSerializer):
+    owner = UserSerializer()
     class Meta:
         model = Land
-        fields = '__all_'
+        fields = '__all__'
