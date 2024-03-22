@@ -95,7 +95,6 @@ class Building(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     property_owner = models.ForeignKey(User, on_delete=models.CASCADE)
     date_posted = models.DateTimeField(auto_now_add=True)
-    image = models.ImageField(upload_to='property_images/')
     building_type = models.CharField(max_length=20, choices=BUILDING_TYPES, default=None)
     condition = models.CharField(max_length=20, choices=BUILDING_CONDITIONS)
     furnishing = models.CharField(max_length=20, choices=FURNISHING_TYPES)
@@ -109,7 +108,7 @@ class Building(models.Model):
     wifi = models.BooleanField(default=False)
     garage = models.BooleanField(default=False)
     description = models.TextField()
-    cart = models.ForeignKey(User, on_delete=models.CASCADE, related_name="cart")
+    
 
     def __str__(self):
         return f"{self.name}, Owner: {self.property_owner}, Price: {self.price}, category: {self.category} " \
@@ -120,6 +119,14 @@ class Building(models.Model):
                f"Internet: {self.highspeed_internet}, Gym: {self.gym}, " \
                f"Dishwasher: {self.dishwasher}, WiFi: {self.wifi}, Garage: {self.garage}"
 
+
+class BuildingImage(models.Model):
+    building = models.ForeignKey(Building, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='property_images/', null=True, blank=True)
+
+    def __str__(self):
+        return f"Image for {self.building.name}"
+
 class Land(models.Model):
     LAND_CATEGORIES = [
         ('land', 'Land')
@@ -127,7 +134,6 @@ class Land(models.Model):
     category = models.CharField(max_length=20, choices=LAND_CATEGORIES, default='land')
     name = models.CharField(max_length=255)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='property_images/')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     date_posted = models.DateTimeField(auto_now_add=True)
     description = models.TextField()
@@ -137,11 +143,13 @@ class Land(models.Model):
         return f"{self.name}, Owner: {self.owner.username}, Price: {self.price}, Posted on {self.date_posted}, country: {self.country}"
 
 class LandImage(models.Model):
-    land = models.ForeignKey(Land, on_delete=models.CASCADE, related_name='land_images')
+    land = models.ForeignKey(Land, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='property_images/', null=True, blank=True)
 
     def __str__(self):
         return f"Image for {self.land.name}"
+    
+
     
 
 
@@ -151,7 +159,24 @@ class SavedProperty(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     building = models.ForeignKey(Building, on_delete=models.CASCADE)
 
+    class Meta:
+        # Ensure each user can save a building only once
+        unique_together = ['user', 'building']
+
     def __str__(self):
         return f"SavedProperty - User: {self.user.username}, Building: {self.building.price}"
+    
+
+class SavedLand(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    land = models.ForeignKey(Land, on_delete=models.CASCADE)
+
+    class Meta:
+        # Ensure each user can save a building only once
+        unique_together = ['user', 'land']
+
+    def __str__(self):
+        return f"SavedProperty - User: {self.user.username}, Building: {self.land.price}"
+
 
 

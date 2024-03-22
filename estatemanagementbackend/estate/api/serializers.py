@@ -79,29 +79,58 @@ class SavedPropertySerializer(serializers.ModelSerializer):
         model = SavedProperty
         fields = '__all__' 
         
+class SavedLandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedLand
+        fields = '__all__' 
+
+class BuildingImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BuildingImage
+        fields = '__all__'
         
 class BuildingUploadSerializer(serializers.ModelSerializer):
+    images = BuildingImageSerializer(many=True, read_only=True)
+
     class Meta:
         model = Building
         fields = [
             'name', 'building_type', 'price',
             'bedrooms', 'bathrooms', 'toilets', 'property_owner', 'swimming_pool',
             'highspeed_internet', 'gym', 'dishwasher', 'wifi', 'garage',
-            'property_type', 'building_type', 'condition', 'furnishing', 'country'
+            'property_type', 'building_type', 'condition', 'furnishing', 'country', 'images'
         ]
+
+    def create(self, validated_data):
+        images_data = self.context.get('view').request.FILES
+        building = Building.objects.create(**validated_data)
+
+        for image_data in images_data.values():
+            BuildingImage.objects.create(building=building, image=image_data)
+
+        return building
 
 class LandImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = LandImage
-        fields = ['image']
+        fields = '__all__'
 
 class LandUploadSerializer(serializers.ModelSerializer):
-    
+
+    images = LandImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Land
-        fields = ['name', 'owner', 'price', 'description', 'country']
+        fields = ['name', 'owner', 'price', 'description', 'country', 'images']
 
+    def create(self, validated_data):
+        images_data = self.context.get('view').request.FILES
+        land = Land.objects.create(**validated_data)
+
+        for image_data in images_data.values():
+            LandImage.objects.create(land=land, image=image_data)
+
+        return land
     
 class BuildingConditionSerializer(serializers.ModelSerializer):
     class Meta:

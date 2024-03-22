@@ -8,6 +8,7 @@ router = routers.DefaultRouter()
 router.register(r'landss', LandViewSet, basename='land-search')
 router.register(r'buildingss', BuildingViewSet, basename='building-search')
 router.register(r'saved-properties', SavedPropertyViewSet, basename='saved-properties')
+router.register(r'saved-land', SavedLandViewSet, basename='saved-land')
 
 urlpatterns = [
     path('', include(router.urls)),  # Include router-generated paths
@@ -15,7 +16,11 @@ urlpatterns = [
     path('get-csrf-token/', views.get_csrf_token, name="get-csrf-token"),
     path('users/', UserListCreateView.as_view(), name='user-list-create'),
     path('saved-property/', SavedPropertyListCreateView.as_view(), name='saved-properties-list-create'),
+    path('land-images/', LandImageListCreateView.as_view(), name='land-images-list-create'),
+    path('building-images/', BuildingImageListCreateView.as_view(), name='building-images-list-create'),
     path('saved-property/<int:pk>/', SavedPropertyDeleteView.as_view(), name='saved-property-delete'),
+     path('saved-land/', SavedLandListCreateView.as_view(), name='saved-land-list-create'),
+    path('saved-land/<int:pk>/', SavedLandDeleteView.as_view(), name='saved-land-delete'),
     path('upload/building/', BuildingUploadListCreateView.as_view(), name='upload-building'),
     path('upload/land/', LandUploadListCreateView.as_view(), name='upload-land'),
     path('register/', UserRegistrationView.as_view(), name='user-registration'),

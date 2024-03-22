@@ -91,6 +91,10 @@ class BuildingListCreateView(generics.ListCreateAPIView):
     queryset = Building.objects.all()
     serializer_class = BuildingSerializer
 
+class BuildingImageListCreateView(generics.ListCreateAPIView):
+    queryset = BuildingImage.objects.all()
+    serializer_class = BuildingImageSerializer
+
 class BuildingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Building.objects.all()
     serializer_class = BuildingSerializer
@@ -98,6 +102,10 @@ class BuildingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 class LandListCreateView(generics.ListCreateAPIView):
     queryset = Land.objects.all()
     serializer_class = LandSerializer
+
+class LandImageListCreateView(generics.ListCreateAPIView):
+    queryset = LandImage.objects.all()
+    serializer_class = LandImageSerializer
 
 class LandRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Land.objects.all()
@@ -131,6 +139,33 @@ class SavedPropertyViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user) 
     
+class SavedLandListCreateView(generics.ListCreateAPIView):
+    serializer_class = SavedLandSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return SavedLand.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class SavedLandDeleteView(generics.DestroyAPIView):
+    serializer_class = SavedLandSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return SavedLand.objects.filter(user=self.request.user)
+
+class SavedLandViewSet(viewsets.ModelViewSet):
+    queryset = SavedLand.objects.all()
+    serializer_class = SavedLandSerializer
+    permission_classes = [IsAuthenticated] 
+
+    # Ensure saving links the property to the current user
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user) 
+
 @api_view(['GET'])
 def property_search(request):
     query = request.GET.get('query', '')
