@@ -88,7 +88,7 @@ class LandUploadListCreateView(generics.ListCreateAPIView):
 
 
 class BuildingListCreateView(generics.ListCreateAPIView):
-    queryset = Building.objects.all()
+    queryset = Building.objects.all().order_by('-id')  # Adjust the field you want to order by
     serializer_class = BuildingSerializer
 
 class BuildingImageListCreateView(generics.ListCreateAPIView):
@@ -100,7 +100,7 @@ class BuildingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BuildingSerializer
 
 class LandListCreateView(generics.ListCreateAPIView):
-    queryset = Land.objects.all()
+    queryset = Land.objects.all().order_by('-id')
     serializer_class = LandSerializer
 
 class LandImageListCreateView(generics.ListCreateAPIView):

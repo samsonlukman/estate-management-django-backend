@@ -69,15 +69,20 @@ class EditProfileSerializer(serializers.ModelSerializer):
         
 class BuildingSerializer(serializers.ModelSerializer):
     property_owner = UserSerializer()
+    currency = serializers.ReadOnlyField()
 
     class Meta:
         model = Building
         fields = '__all__'
 
+    
+
+
 class SavedPropertySerializer(serializers.ModelSerializer):
     class Meta:
         model = SavedProperty
         fields = '__all__' 
+    
         
 class SavedLandSerializer(serializers.ModelSerializer):
     class Meta:
@@ -147,6 +152,10 @@ class FurnishingTypeSerializer(serializers.ModelSerializer):
 
 class LandSerializer(serializers.ModelSerializer):
     owner = UserSerializer()
+    currency = serializers.ReadOnlyField()
+
     class Meta:
         model = Land
         fields = '__all__'
+
+    
